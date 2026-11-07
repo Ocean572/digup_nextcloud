@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+    <id>digup</id>
+    <name>DigUp Search</name>
+    <summary>Semantic media search from a self-hosted DigUp server: photos, video frames and sound, audio, PDFs and documents — filtered to the files each user can see.</summary>
+    <description><![CDATA[
+DigUp Search connects a Nextcloud instance to a self-hosted DigUp server (https://github.com/ARahim3/DigUp),
+a semantic media search engine that indexes a folder tree read-only — photos, video frames *and their sound*,
+audio, PDFs, office documents, screenshots — and answers natural-language queries with z-scored hits.
+
+* **The operator pastes the server URL and its read token** in Administration settings → DigUp Search.
+  The server may live on another machine (the one with the GPU); Nextcloud talks to it server-to-server.
+* **Per-user by design**: every search is filtered inside Nextcloud against its own permissions —
+  a user sees their own files plus files shared with them, and nothing else. The DigUp server's
+  index spans the whole data directory; the filtering happens here, with Nextcloud's own APIs.
+* **Read-only, by design**: the app never writes files and never touches Nextcloud's database
+  beyond its own settings. It creates no tables. Media bytes reach the browser from Nextcloud's
+  own preview API, with the user's own session — the DigUp token never leaves the server.
+* Open a result: the Files app opens it (viewer for images, Videos for video, PDF viewer for PDFs).
+* The server side (compose shape, tokens, exclusions, the ACL contract) is documented in the
+  DigUp repository: docs/implementation/stage-12-integrations.md.
+]]></description>
+    <version>0.1.0</version>
+    <licence>mit</licence>
+    <author>Dean Swilling</author>
+    <namespace>DigUp</namespace>
+    <class>OCA\DigUp\AppInfo\Application</class>
+    <category>search</category>
+    <website>https://github.com/ARahim3/DigUp</website>
+    <bugs>https://github.com/Ocean572/digup_nextcloud/issues</bugs>
+    <repository type="git">https://github.com/Ocean572/digup_nextcloud.git</repository>
+    <dependencies>
+        <nextcloud min-version="28" max-version="31"/>
+    </dependencies>
+    <navigations>
+        <navigation>
+            <name>DigUp</name>
+            <route>digup.page.index</route>
+            <icon>app.svg</icon>
+            <order>10</order>
+        </navigation>
+    </navigations>
+    <settings>
+        <section>OCA\DigUp\Settings\AdminSection</section>
+        <setting>OCA\DigUp\Settings\Admin</setting>
+    </settings>
+</info>

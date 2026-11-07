@@ -1,0 +1,24 @@
+{
+    "name": "digup/nextcloud-app",
+    "description": "DigUp Search — semantic media search from a self-hosted DigUp server, filtered to each user's Nextcloud permissions",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Dean Swilling"
+        }
+    ],
+    "require": {
+        "php": ">=8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "OCA\\DigUp\\": "lib/"
+        }
+    },
+    "config": {
+        "autoloader-suffix": "digup",
+        "autoloader-dir": "composer",
+        "optimize-autoloader": true
+    }
+}
