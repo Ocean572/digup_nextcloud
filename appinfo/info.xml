@@ -21,7 +21,7 @@ audio, PDFs, office documents, screenshots — and answers natural-language quer
 * The server side (compose shape, tokens, exclusions, the ACL contract) is documented in the
   DigUp repository: docs/implementation/stage-12-integrations.md.
 ]]></description>
-    <version>0.2.2</version>
+    <version>0.3.0</version>
     <licence>mit</licence>
     <author>Dean Swilling</author>
     <namespace>DigUp</namespace>

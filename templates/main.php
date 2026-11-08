@@ -28,6 +28,26 @@
   </header>
   <main class="digup-main">
     <p id="digup-status" role="status"><?php p($l->t('Say what you’d see, hear, or read — the meaning, not only the words.')); ?></p>
-    <ul id="digup-results" class="digup-grid"></ul>
+    <div class="digup-panes">
+      <ul id="digup-results" class="digup-grid"></ul>
+      <aside id="digup-detail" hidden aria-label="<?php p($l->t('Preview')); ?>">
+        <div class="digup-detail-bar">
+          <button type="button" id="digup-detail-prev" aria-label="<?php p($l->t('Previous hit')); ?>">‹</button>
+          <span id="digup-detail-name" class="digup-detail-name"></span>
+          <button type="button" id="digup-detail-next" aria-label="<?php p($l->t('Next hit')); ?>">›</button>
+          <button type="button" id="digup-detail-close" aria-label="<?php p($l->t('Close preview')); ?>">✕</button>
+        </div>
+        <div id="digup-detail-media" class="digup-detail-media"></div>
+        <p id="digup-detail-meta" class="digup-meta"></p>
+        <a id="digup-detail-open" class="button" target="_blank" rel="noopener noreferrer"><?php p($l->t('Open in Files')); ?></a>
+      </aside>
+    </div>
   </main>
+  <div id="digup-lightbox" hidden role="dialog" aria-label="<?php p($l->t('Enlarged preview')); ?>">
+    <div class="digup-lightbox-bar">
+      <a id="digup-lightbox-open" class="button" target="_blank" rel="noopener noreferrer"><?php p($l->t('Open in Files')); ?></a>
+      <button type="button" id="digup-lightbox-close" aria-label="<?php p($l->t('Close')); ?>">✕</button>
+    </div>
+    <div id="digup-lightbox-media" class="digup-detail-media"></div>
+  </div>
 </div>
