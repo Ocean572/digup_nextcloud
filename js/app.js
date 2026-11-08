@@ -30,9 +30,17 @@
 		if (!p || !p.ok) {
 			return '';
 		}
-		if (p.state === 'running' && p.files && p.files_done !== null && p.files_done < p.files) {
-			var pct = (100 * p.files_done / p.files).toFixed(1);
-			return 'indexing ' + fmt(p.files_done) + ' / ' + fmt(p.files) + ' files (' + pct + ' %)';
+		// While the job walk has not published its total (the record's files
+		// arrives at sync end), the engine's own count (index_files) is the
+		// denominator — measured 2026-11-08: a running job answers files:null
+		// with index_files 131,973, and the line must ride beside the spinner
+		// as N / total, never N / ? (UX ask).
+		if (p.state === 'running') {
+			var total = p.files || p.index_files;
+			if (total && p.files_done !== null && p.files_done < total) {
+				var pct = (100 * p.files_done / total).toFixed(1);
+				return 'indexing ' + fmt(p.files_done) + ' / ' + fmt(total) + ' files (' + pct + ' %)';
+			}
 		}
 		if (p.index_files !== null && p.files && p.index_files < p.files) {
 			return 'index ' + fmt(p.index_files) + ' / ' + fmt(p.files)
