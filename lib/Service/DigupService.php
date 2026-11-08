@@ -135,6 +135,91 @@ class DigupService {
 	}
 
 	/**
+	 * Server facts for the admin settings page (stage 13): the counts of the index this
+	 * app's token answers — with named indexes (docs/API.md) the app's token is bound to
+	 * the application's OWN index, so these are the bridge's own numbers. The call rides
+	 * the same server-to-server path as the search: the token never reaches the browser,
+	 * every number is the server's verbatim.
+	 */
+	public function serverStatus(): array {
+		$settings = $this->getSettings();
+		$base = rtrim($settings['base_url'], '/');
+		$token = $this->config->getAppValue('digup', 'read_token', '');
+		if ($base === '' || $token === '') {
+			return ['ok' => false, 'detail' => 'Set the server URL and its access key first.'];
+		}
+		try {
+			$client = $this->http->newClient(['timeout' => 15, 'verify' => $settings['verify_tls']]);
+			$answer = $client->get($base . '/api/v1/status', [
+				'headers' => ['authorization' => 'Bearer ' . $token],
+			] + $this->ssrfOptions());
+			$status = $answer->getStatusCode();
+			$body = json_decode((string)$answer->getBody(), true) ?: [];
+			if ($status !== 200) {
+				return ['ok' => false, 'detail' => "The server answered $status."];
+			}
+			return [
+				'ok' => true,
+				'target' => $body['target'] ?? 'media',
+				'files' => $body['files'] ?? null,
+				'searchable' => $body['searchable'] ?? null,
+				'roots' => $body['roots'] ?? [],
+			];
+		} catch (\Throwable $e) {
+			return ['ok' => false, 'detail' => $this->failureDetail($e)];
+		}
+	}
+
+	/**
+	 * "Index now" for THIS application's index — the application-side half of
+	 * "Nextcloud tells DigUp to build the index" (stage 13). An application token may
+	 * queue a crawl of its own target only (the server enforces the binding), so this
+	 * call cannot touch any other index. The server's own answers pass through: 202
+	 * with the job, 409 with the busy words, 403 with the server's reason.
+	 */
+	public function startIndex(): array {
+		$settings = $this->getSettings();
+		$base = rtrim($settings['base_url'], '/');
+		$token = $this->config->getAppValue('digup', 'read_token', '');
+		if ($base === '' || $token === '') {
+			return ['ok' => false, 'detail' => 'Set the server URL and its access key first.'];
+		}
+		try {
+			$client = $this->http->newClient(['timeout' => 15, 'verify' => $settings['verify_tls']]);
+			$answer = $client->post($base . '/api/v1/index', [
+				'headers' => ['authorization' => 'Bearer ' . $token],
+				'json' => new \stdClass(),
+			] + $this->ssrfOptions());
+			$status = $answer->getStatusCode();
+			$body = json_decode((string)$answer->getBody(), true) ?: [];
+			if ($status === 202) {
+				return ['ok' => true, 'job' => $body['job'] ?? null];
+			}
+			return ['ok' => false, 'detail' => ($body['detail'] ?? "The server answered $status.")];
+		} catch (\Throwable $e) {
+			return ['ok' => false, 'detail' => $this->failureDetail($e)];
+		}
+	}
+
+	/**
+	 * The server's words out of a failed request. Guzzle raises on 4xx/5xx and embeds
+	 * the raw body in its message; the settings line wants the server's `detail`
+	 * string alone ("an index job is already running…", "…need the admin token") —
+	 * verbatim, in the server's voice. Anything without one (DNS, TLS, timeout) shows
+	 * the transport message as-is.
+	 */
+	private function failureDetail(\Throwable $e): string {
+		$server = null;
+		if ($e instanceof \GuzzleHttp\Exception\BadResponseException) {
+			$decoded = json_decode((string)$e->getResponse()->getBody(), true);
+			if (is_array($decoded) && isset($decoded['detail']) && is_string($decoded['detail'])) {
+				$server = $decoded['detail'];
+			}
+		}
+		return $server ?? $e->getMessage();
+	}
+
+	/**
 	 * GET /api/v1/progress — the indexing progress the page shows beside the activity
 	 * spinner (§ UX ask, 2026-11-07: users watching a multi-hour run want files_done /
 	 * files, straight from the server's own job records — the app invents no numbers).
@@ -198,6 +283,8 @@ class DigupService {
 	private function ssrfOptions(): array {
 		return ['nextcloud' => ['allow_local_address' => true]];
 	}
+
+	/* ── the search: server answer → user-visible files ────────────────────────────── */
 
 	/* ── the search: server answer → user-visible files ────────────────────────────── */
 

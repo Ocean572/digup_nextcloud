@@ -89,7 +89,7 @@ Configure the app under **Administration settings → DigUp Search**.
 | **DigUp server URL** | Base URL of the DigUp server, for example `http://192.0.2.10:8787`. |
 | **Path the server mounts the share at** | Prefix under which the server indexes this Nextcloud instance's files. Examples: `/media/photos` for the data-directory layout or `/media/dav` for the WebDAV layout described below. |
 | **How the server sees this instance's files** | Select **Data directory** when the server mounts the raw Nextcloud data directory. Rows then have the form `<prefix>/<user>/files/<rel>`. Select **WebDAV mounts** when the server uses per-user `davfs2` mounts. Rows then have the form `<prefix>/<user>/<rel>`, representing each user's own Nextcloud view. The prefix and mapping mode must match the server's mount configuration exactly. |
-| **Read token** | The server's `DIGUP_SERVER_READ_TOKENS` entry for this instance. This token has read scope for search, media, and health endpoints. It cannot index, prune, or estimate. |
+| **Access key** | The key the DigUp server issues for this application. On a plain deployment this is the server's `DIGUP_SERVER_READ_TOKENS` entry (read scope: search, media, health — no index, prune, estimate). With the server's **named indexes**, paste the key its Application-keys page mints for this app (`app:<name>`): searches, the status line, and Index now then all answer **this app's own index**, and the key cannot touch any other index (docs/API.md "Named indexes", server repo). |
 | **Verify TLS** | Enabled by default. Disable it only when connecting to a self-signed server on a trusted LAN. |
 
 **Test connection** checks the server's unauthenticated `GET /api/v1/health` endpoint, which reports file and vector counts along with the engine tag. This is a quick way to identify common configuration problems, including the SSRF firewall, an incorrect token, or an unavailable server. Each failure is reported in plain language.
@@ -98,9 +98,9 @@ Configure the app under **Administration settings → DigUp Search**.
 
 Indexing is performed by the DigUp server, not by the Nextcloud app.
 
-Open the DigUp server UI using the **admin** token and select **Index now**, or send a request to `POST /api/v1/index`. Indexing never starts automatically.
+Open the DigUp server UI using the **admin** token and select **Index now**, or send a request to `POST /api/v1/index`. Indexing never starts automatically. The app's own settings page shows a one-line status of the index this app's key answers — target, files, searchable, straight from the server — and its **Index now** button queues the crawl with the stored key: `202` accepted with the job, `409` while a job is running, `403` with the server's own words when the key cannot queue it. With the server's named indexes, that crawl is the app's own index, built in parallel with the server's media index (its writer lock lives beside its own index folder).
 
-Only one indexing job can run at a time. If another request arrives while a job is running, the server responds with `409 Conflict`. This is intentional: a `flock` serializes writers.
+Only one indexing job can run at a time **per index**. If another request arrives at the same index while its job is running, the server responds with `409 Conflict`. This is intentional: a `flock` serializes writers.
 
 The first indexing pass over a large directory tree can take several hours. Jobs survive restarts and resume where they left off.
 
@@ -199,6 +199,8 @@ The measured costs and benefits of the WebDAV deployment are:
    The ACL test suite over the DAV roots returned these hit counts: Alice 6/3/3, Bob 4/6, and Carol 2/3/3. The shared dog was deduplicated to each viewer's own mount path. Carol's `dog running` query returned document-only hits because her view did not contain the shared photos.
 
    Preview requests returned `200` or `404` according to share access. A mount-flap test required no server restart: stopping the DAV container reduced estimate to 0 files; starting it again restored all 153 files. During graceful shutdown, the server exited with code `143` and the DAV container logged its unmount-trap line. After restart, search returned 5 hits, with a top score of `5.0`. All 36 fixture files remained byte-identical after the run.
+
+10. **0.4.0 index line + Index now (2026-11-08, pilot stack, stage-13 server endpoints):** With the app deployed at 0.4.0 (files bind-swapped, `php -l` clean in the container, `node --check` clean on both scripts), the admin session's `GET /api/v1/status` returned `200` with the server's own numbers verbatim — target `media`, 131,973 files, 115,098 searchable, roots `['/media/photos']` (live counts mid-indexing). `POST /api/v1/index` passed the server's answer through verbatim: with the pilot's read-scope key it surfaced the honest words — *"that is this server's read-scope token; indexing and estimating need the admin token."* A non-admin user received `403` on both routes. The settings page gained the index line (target + counts) and the **Index now** button; the key field is now "Access key" (with named indexes, the server's minted application key, which answers this app's own index alone).
 
 ## Privacy
 

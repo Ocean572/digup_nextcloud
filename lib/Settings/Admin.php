@@ -39,6 +39,8 @@ class Admin implements ISettings {
 			'settings' => $this->service->getSettings(),
 			'testUrl' => $this->url->linkTo('', 'index.php/apps/digup/api/v1/test'),
 			'saveUrl' => $this->url->linkTo('', 'index.php/apps/digup/settings'),
+			'statusUrl' => $this->url->linkTo('', 'index.php/apps/digup/api/v1/status'),
+			'indexUrl' => $this->url->linkTo('', 'index.php/apps/digup/api/v1/index'),
 		]);
 	}
 }

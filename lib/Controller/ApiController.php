@@ -68,6 +68,31 @@ class ApiController extends Controller {
 		return new JSONResponse($this->service->probe($typed !== '' ? $typed : null));
 	}
 
+	/**
+	 * GET /api/v1/status — the admin settings page's index facts (stage 13): the counts
+	 * of the index THIS app's token answers — with the server's named indexes that is the
+	 * bridge's own index, and the numbers are the server's verbatim.
+	 */
+	public function status(): JSONResponse {
+		if (!$this->groups->isAdmin($this->userId)) {
+			return new JSONResponse(['ok' => false, 'detail' => 'Only administrators can see the server status.'], 403);
+		}
+		return new JSONResponse($this->service->serverStatus());
+	}
+
+	/**
+	 * POST /api/v1/index — "Index now" for this application's own index (stage 13).
+	 * The server binds an application token to its own target, so this can queue the
+	 * bridge's crawl and nothing else; 202/409/403 all pass through with the server's
+	 * own words.
+	 */
+	public function indexnow(): JSONResponse {
+		if (!$this->groups->isAdmin($this->userId)) {
+			return new JSONResponse(['ok' => false, 'detail' => 'Only administrators can start an index job.'], 403);
+		}
+		return new JSONResponse($this->service->startIndex());
+	}
+
 	/** POST /settings (the admin settings form's save) — base_url / root_prefix / mapping_mode / read_token. */
 	public function save(string $base_url = '', string $root_prefix = '', string $read_token = '',
 		bool $verify_tls = true, string $mapping_mode = 'data'): JSONResponse {

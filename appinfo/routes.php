@@ -15,6 +15,8 @@ return [
 		['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
 		['name' => 'api#save', 'url' => '/settings', 'verb' => 'POST'],
 		['name' => 'api#test', 'url' => '/api/v1/test', 'verb' => 'POST'],
+		['name' => 'api#status', 'url' => '/api/v1/status', 'verb' => 'GET'],
+		['name' => 'api#indexnow', 'url' => '/api/v1/index', 'verb' => 'POST'],
 		['name' => 'api#search', 'url' => '/api/v1/search', 'verb' => 'POST'],
 		['name' => 'api#progress', 'url' => '/api/v1/progress', 'verb' => 'GET'],
 	],
