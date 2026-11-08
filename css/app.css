@@ -39,12 +39,21 @@
 	animation: digup-spin 0.8s linear infinite;
 }
 
-/* The index progress line beside the spinner: the server's own files_done / files
- * counts while a run is in flight, and the "not fully indexed" hint after it
- * (UX ask, 2026-11-07). Subdued so the results keep the foreground. */
+/* The index progress line RIGHT of the spinner circle (UX ask, 2026-11-08): the
+ * spinner + counts form one flex group so bar-wrapping never splits them apart.
+ * The server's own files_done / files counts while a run is in flight, and the
+ * "not fully indexed" hint after it. Subdued so the results keep the foreground. */
+.digup-spin-group {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45em;
+	min-width: 0;   /* lets the counts shrink instead of forcing the bar to wrap */
+}
+
 .digup-progress {
 	font-size: 11px;
 	color: var(--color-text-maxcontrast);
+	white-space: nowrap;
 	min-width: 1em;
 }
 

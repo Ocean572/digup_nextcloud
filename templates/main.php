@@ -21,8 +21,10 @@
       </select>
       <?php p($l->t('results')); ?>
     </label>
-    <span id="digup-activity" class="digup-activity" aria-hidden="true"></span>
-    <span id="digup-progress" class="digup-progress" aria-live="polite"></span>
+    <span class="digup-spin-group">
+      <span id="digup-activity" class="digup-activity" aria-hidden="true"></span>
+      <span id="digup-progress" class="digup-progress" aria-live="polite"></span>
+    </span>
   </header>
   <main class="digup-main">
     <p id="digup-status" role="status"><?php p($l->t('Say what you’d see, hear, or read — the meaning, not only the words.')); ?></p>
