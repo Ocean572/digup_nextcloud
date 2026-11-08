@@ -42,12 +42,12 @@ $s = $_['settings'];
     </select>
   </div>
   <div class="digup-setting">
-    <label for="digup-read-token"><?php p($l->t('Access key')); ?></label>
+    <label for="digup-read-token"><?php p($l->t('API key')); ?></label>
     <input id="digup-read-token" type="password" autocomplete="new-password"
-           placeholder="<?php p($s['read_token_set'] ? $l->t('•••••• (saved — type to replace)') : $l->t("paste the server's application key")); ?>"
+           placeholder="<?php p($s['read_token_set'] ? $l->t('•••••• (saved — type to replace)') : $l->t('paste the server’s API key')); ?>"
            style="width: 24em;">
     <p class="settings-hint">
-      <?php p($l->t('The key the DigUp server issues for this application — its Settings → Access → Application keys page lists them. With the server’s named indexes, an application key answers for this app’s own index: searches, status, and indexing here all concern that index alone.')); ?>
+      <?php p($l->t('Paste the key from the DigUp server’s Settings → API key — the row for this application. Every search, the status line, and Index now then concern this app’s own index on that server; the key cannot touch any other index.')); ?>
     </p>
   </div>
   <div class="digup-setting digup-setting-check">
