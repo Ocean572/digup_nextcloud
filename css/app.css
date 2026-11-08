@@ -39,6 +39,15 @@
 	animation: digup-spin 0.8s linear infinite;
 }
 
+/* The index progress line beside the spinner: the server's own files_done / files
+ * counts while a run is in flight, and the "not fully indexed" hint after it
+ * (UX ask, 2026-11-07). Subdued so the results keep the foreground. */
+.digup-progress {
+	font-size: 11px;
+	color: var(--color-text-maxcontrast);
+	min-width: 1em;
+}
+
 @keyframes digup-spin { to { transform: rotate(360deg); } }
 
 .digup-main {

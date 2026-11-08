@@ -16,9 +16,69 @@
 		return;
 	}
 	var searchUrl = root.getAttribute('data-search-url');
+	var progressUrl = root.getAttribute('data-progress-url');
 	var debounce = null;
 	var lastQuery = '';
 	var generation = 0;
+	var progressTimer = null;
+
+	function fmt(n) {
+		return n === null || n === undefined ? '?' : Number(n).toLocaleString();
+	}
+
+	function progressLine(p) {
+		if (!p || !p.ok) {
+			return '';
+		}
+		if (p.state === 'running' && p.files && p.files_done !== null && p.files_done < p.files) {
+			var pct = (100 * p.files_done / p.files).toFixed(1);
+			return 'indexing ' + fmt(p.files_done) + ' / ' + fmt(p.files) + ' files (' + pct + ' %)';
+		}
+		if (p.index_files !== null && p.files && p.index_files < p.files) {
+			return 'index ' + fmt(p.index_files) + ' / ' + fmt(p.files)
+				+ ' files — run “Index now” to pick up changes';
+		}
+		return '';
+	}
+
+	function showProgress(p) {
+		var el = $('digup-progress');
+		var line = progressLine(p);
+		if (el) {
+			el.textContent = line;
+		}
+		return line;
+	}
+
+	function refreshProgress() {
+		if (!progressUrl) {
+			return;
+		}
+		fetch(progressUrl, {
+			headers: { requesttoken: OC.requestToken },
+			credentials: 'same-origin'
+		})
+			.then(function (a) { return a.json(); })
+			.then(showProgress)
+			.catch(function () { /* the progress line is optional; the search is not */ });
+	}
+
+	function startProgressPolling() {
+		refreshProgress();
+		if (progressTimer === null && progressUrl) {
+			progressTimer = setInterval(refreshProgress, 2000);
+		}
+	}
+
+	function stopProgressPolling() {
+		if (progressTimer !== null) {
+			clearInterval(progressTimer);
+			progressTimer = null;
+		}
+		refreshProgress();
+	}
+
+	refreshProgress();     // the page opens with the index state visible
 
 	function render(reply) {
 		var list = $('digup-results');
@@ -79,6 +139,7 @@
 
 	function search(query) {
 		$('digup-activity').hidden = false;
+		startProgressPolling();         // the wheel shows files_done / files while it spins
 		var my = ++generation;          // newest query wins: stale replies are dropped
 		fetch(searchUrl, {
 			method: 'POST',
@@ -95,6 +156,7 @@
 					return;
 				}
 				$('digup-activity').hidden = true;
+				stopProgressPolling();
 				render(reply);
 			})
 			.catch(function (error) {
@@ -102,6 +164,7 @@
 					return;
 				}
 				$('digup-activity').hidden = true;
+				stopProgressPolling();
 				$('digup-status').textContent = String(error);
 			});
 	}

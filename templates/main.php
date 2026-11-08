@@ -7,7 +7,7 @@
  * the template adds nothing.)
  */
 ?>
-<div id="digup-app" data-search-url="<?php p($_['searchUrl']); ?>">
+<div id="digup-app" data-search-url="<?php p($_['searchUrl']); ?>" data-progress-url="<?php p($_['progressUrl'] ?? ''); ?>">
   <header class="digup-bar">
     <input id="digup-q" type="search" autocomplete="off" spellcheck="false"
            placeholder="<?php p($l->t('Search your media by meaning — photos, video, documents…')); ?>"
@@ -22,6 +22,7 @@
       <?php p($l->t('results')); ?>
     </label>
     <span id="digup-activity" class="digup-activity" aria-hidden="true"></span>
+    <span id="digup-progress" class="digup-progress" aria-live="polite"></span>
   </header>
   <main class="digup-main">
     <p id="digup-status" role="status"><?php p($l->t('Say what you’d see, hear, or read — the meaning, not only the words.')); ?></p>

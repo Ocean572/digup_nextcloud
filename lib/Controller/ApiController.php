@@ -46,6 +46,16 @@ class ApiController extends Controller {
 	}
 
 	/**
+	 * GET /api/v1/progress — indexing progress for the search page's activity area.
+	 * Any logged-in user may read it (it is the server's own public status shape).
+	 *
+	 * @NoAdminRequired
+	 */
+	public function progress(): JSONResponse {
+		return new JSONResponse($this->service->indexProgress());
+	}
+
+	/**
 	 * POST /api/v1/test — the settings page's "Test connection" probe (admin only).
 	 * A posted base_url is probed as typed (testing unsaved edits before saving);
 	 * empty falls back to the stored one.

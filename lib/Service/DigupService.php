@@ -135,6 +135,59 @@ class DigupService {
 	}
 
 	/**
+	 * GET /api/v1/progress — the indexing progress the page shows beside the activity
+	 * spinner (§ UX ask, 2026-11-07: users watching a multi-hour run want files_done /
+	 * files, straight from the server's own job records — the app invents no numbers).
+	 * /status answers the live index counts; /jobs answers the running/last job. The
+	 * answer is cached 5 s per FPM worker (apcu), so a polling page is a few requests
+	 * a minute, not a flood. Any failure returns ok:false with the server's words.
+	 */
+	public function indexProgress(): array {
+		$cacheKey = 'digup_index_progress';
+		if (\function_exists('apcu_fetch')) {
+			$hit = false;
+			$cached = apcu_fetch($cacheKey, $hit);
+			if ($hit) {
+				return $cached;
+			}
+		}
+		$settings = $this->getSettings();
+		$base = rtrim($settings['base_url'], '/');
+		$token = $this->config->getAppValue('digup', 'read_token', '');
+		if ($base === '' || $token === '') {
+			return ['ok' => false, 'detail' => 'not configured'];
+		}
+		try {
+			$client = $this->http->newClient(['timeout' => 8, 'verify' => $settings['verify_tls']]);
+			$auth = ['headers' => ['authorization' => 'Bearer ' . $token]] + $this->ssrfOptions();
+			$status = json_decode((string)$client->get($base . '/api/v1/status', $auth)->getBody(), true) ?: [];
+			$jobs = json_decode((string)$client->get($base . '/api/v1/jobs', $auth)->getBody(), true) ?: [];
+			$list = $jobs['jobs'] ?? [];
+			$running = null;
+			foreach ($list as $job) {
+				if (($job['state'] ?? '') === 'running') {
+					$running = $job;
+				}
+			}
+			$last = $running ?? ($list !== [] ? $list[\count($list) - 1] : null);
+			$reply = [
+				'ok' => true,
+				'state' => $running !== null ? 'running' : ($last['state'] ?? null),
+				'files_done' => $last['files_done'] ?? null,
+				'files' => $last['files'] ?? null,
+				'index_files' => $status['files'] ?? null,
+				'searchable' => $status['searchable'] ?? null,
+			];
+			if (\function_exists('apcu_store')) {
+				apcu_store($cacheKey, $reply, 5);
+			}
+			return $reply;
+		} catch (\Throwable $e) {
+			return ['ok' => false, 'detail' => $e->getMessage()];
+		}
+	}
+
+	/**
 	 * Requests to the admin-configured server URL carry core's sanctioned local-address
 	 * flag. Measured on 28.0.14: core's local-address check consults it, and an operator
 	 * who puts the DigUp server on a private address also needs `allow_local_servers`

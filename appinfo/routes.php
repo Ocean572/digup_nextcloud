@@ -16,5 +16,6 @@ return [
 		['name' => 'api#save', 'url' => '/settings', 'verb' => 'POST'],
 		['name' => 'api#test', 'url' => '/api/v1/test', 'verb' => 'POST'],
 		['name' => 'api#search', 'url' => '/api/v1/search', 'verb' => 'POST'],
+		['name' => 'api#progress', 'url' => '/api/v1/progress', 'verb' => 'GET'],
 	],
 ];

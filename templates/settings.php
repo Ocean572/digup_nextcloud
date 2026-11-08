@@ -18,7 +18,7 @@ $s = $_['settings'];
   <div class="digup-setting">
     <label for="digup-base-url"><?php p($l->t('DigUp server URL')); ?></label>
     <input id="digup-base-url" type="url" value="<?php p($s['base_url']); ?>"
-           placeholder="http://ai-server.local:8787" style="width: 24em;">
+           placeholder="http://192.0.2.10:8787" style="width: 24em;">
   </div>
   <div class="digup-setting">
     <label for="digup-root-prefix"><?php p($l->t('Path the server mounts the share at')); ?></label>

@@ -41,6 +41,7 @@ class PageController extends Controller {
 			// the same path core's router registers for its routes (works with and
 			// without pretty URLs).
 			'searchUrl' => $this->url->linkTo('', 'index.php/apps/digup/api/v1/search'),
+			'progressUrl' => $this->url->linkTo('', 'index.php/apps/digup/api/v1/progress'),
 		]);
 		// Previews come from this same origin (core's preview.php) — keep the CSP plain.
 		$csp = new ContentSecurityPolicy();
