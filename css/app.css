@@ -197,6 +197,13 @@
 	border-left: 1px solid var(--color-border);
 	padding-left: 0.9rem;
 }
+/* `display: flex` out-specifies the UA's [hidden] rule — the pane, its bar (‹ ›, ✕,
+ * Open in Files) and the border rule all rendered on an EMPTY page, and the ✕ "did
+ * nothing" for the same reason (user feedback 2026-11-08, round 1). The lightbox
+ * already carries this line; the pane gets it too: hidden means hidden. */
+#digup-detail[hidden] {
+	display: none;
+}
 
 .digup-detail-bar {
 	display: flex;
