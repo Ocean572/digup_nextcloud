@@ -288,7 +288,7 @@ class DigupService {
 
 	/* ── the search: server answer → user-visible files ────────────────────────────── */
 
-	public function search(string $query, int $displayLimit, string $userId): array {
+	public function search(string $query, int $displayLimit, string $userId, array $kinds = []): array {
 		$settings = $this->getSettings();
 		$base = rtrim($settings['base_url'], '/');
 		$token = $this->config->getAppValue('digup', 'read_token', '');
@@ -306,7 +306,14 @@ class DigupService {
 					'authorization' => 'Bearer ' . $token,
 					'content-type' => 'application/json',
 				],
-				'json' => ['q' => $query, 'limit' => $askLimit],
+				// The kind filter rides the engine's own SearchRequest: the list is
+				// whitelisted to its Kind literals (anything else would be a 422 from
+				// the server); all six = every kind, an empty list = the engine's
+				// answer over no kinds — the standalone UI's semantics, verbatim.
+				'json' => ['q' => $query, 'limit' => $askLimit,
+					'kinds' => array_values(array_intersect(
+						array_map('strval', $kinds),
+						['screenshot', 'image', 'pdf', 'doc', 'audio', 'video']))],
 			] + $this->ssrfOptions());
 		} catch (\Throwable $e) {
 			return ['hits' => [], 'strong' => 0, 'meaning' => true, 'ms' => [],

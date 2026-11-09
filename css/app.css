@@ -58,6 +58,35 @@
 	min-width: 1em;
 }
 
+/* Kind filter under the search bar (user brief 2026-11-08): the same media-type
+ * chips as the standalone app, Files-subdued, instance theme variables only. The
+ * all button is a toggle — aria-pressed marks the all-on state. */
+.digup-kinds {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.2rem 0.85rem;
+	padding: 0.1rem 1rem 0.3rem;
+	font-size: 13px;
+	color: var(--color-main-text);
+}
+.digup-kindchip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	white-space: nowrap;
+	cursor: pointer;
+}
+.digup-kinds-all {
+	min-width: unset;
+	padding: 2px 12px;
+	border-radius: 1em;
+}
+.digup-kinds-all[aria-pressed="true"] {
+	color: var(--color-primary-element);
+	border-color: var(--color-primary-element);
+}
+
 @keyframes digup-spin { to { transform: rotate(360deg); } }
 
 .digup-main {

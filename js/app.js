@@ -31,6 +31,10 @@
 	var progressTimer = null;
 	var lastHits = [];   // the preview pane walks these
 	var selected = -1;
+	var KINDS = ['screenshot', 'image', 'pdf', 'doc', 'audio', 'video'];
+	var jobRunning = false;      // the server's own job state (from /progress)
+	var searchInFlight = false;  // the activity icon belongs to BOTH sources:
+	var searchIn = null;         // a search in flight AND a running index job
 
 	function fmt(n) {
 		return n === null || n === undefined ? '?' : Number(n).toLocaleString();
@@ -68,6 +72,10 @@
 		return line;
 	}
 
+	function setActivity() {
+		$('digup-activity').hidden = !(searchInFlight || jobRunning);
+	}
+
 	function refreshProgress() {
 		if (!progressUrl) {
 			return;
@@ -77,7 +85,18 @@
 			credentials: 'same-origin'
 		})
 			.then(function (a) { return a.json(); })
-			.then(showProgress)
+			.then(function (p) {
+				showProgress(p);
+				// The live counts ride beside the spinner the WHOLE time the job
+				// walks (user brief 2026-11-08): while the server answers state
+				// 'running', the poll keeps itself armed — the spinner stays
+				// visible, and progressLine shows files_done / total from there.
+				jobRunning = Boolean(p && p.ok && p.state === 'running');
+				setActivity();
+				if (jobRunning && progressTimer === null) {
+					progressTimer = setInterval(refreshProgress, 2000);
+				}
+			})
 			.catch(function () { /* the progress line is optional; the search is not */ });
 	}
 
@@ -93,7 +112,7 @@
 			clearInterval(progressTimer);
 			progressTimer = null;
 		}
-		refreshProgress();
+		refreshProgress();   // re-arms itself when the job is still running
 	}
 
 	refreshProgress();     // the page opens with the index state visible
@@ -298,8 +317,14 @@
 		}
 	}
 
+	function checkedKinds() {
+		return Array.prototype.slice.call(document.querySelectorAll('#digup-kinds input:checked'))
+			.map(function (box) { return box.value; });
+	}
+
 	function search(query) {
-		$('digup-activity').hidden = false;
+		searchInFlight = true;
+		setActivity();
 		startProgressPolling();         // the wheel shows files_done / files while it spins
 		var my = ++generation;          // newest query wins: stale replies are dropped
 		fetch(searchUrl, {
@@ -309,23 +334,26 @@
 				requesttoken: OC.requestToken
 			},
 			credentials: 'same-origin',
-			body: JSON.stringify({ q: query, limit: Number($('digup-limit').value) })
+			body: JSON.stringify({ q: query, limit: Number($('digup-limit').value),
+				kinds: checkedKinds() })
 		})
 			.then(function (answer) { return answer.json(); })
 			.then(function (reply) {
 				if (my !== generation) {
 					return;
 				}
-				$('digup-activity').hidden = true;
+				searchInFlight = false;
 				stopProgressPolling();
+				setActivity();
 				render(reply);
 			})
 			.catch(function (error) {
 				if (my !== generation) {
 					return;
 				}
-				$('digup-activity').hidden = true;
+				searchInFlight = false;
 				stopProgressPolling();
+				setActivity();
 				$('digup-status').textContent = String(error);
 			});
 	}
@@ -347,6 +375,29 @@
 		if (query.length >= 2) {
 			search(query);
 		}
+	});
+	function syncAllPressed() {
+		var on = checkedKinds().length === KINDS.length;
+		var all = $('digup-kinds-all');
+		all.setAttribute('aria-pressed', String(on));
+		all.title = on ? 'All media types on — click to clear them all' : 'Turn all media types on';
+	}
+	function research() {
+		var query = $('digup-q').value.trim();
+		if (query.length >= 2) {
+			search(query);
+		}
+	}
+	document.getElementById('digup-kinds').addEventListener('change', function () {
+		syncAllPressed();
+		research();
+	});
+	$('digup-kinds-all').addEventListener('click', function () {
+		var on = checkedKinds().length !== KINDS.length;   // all on → clear; else fill
+		Array.prototype.slice.call(document.querySelectorAll('#digup-kinds input'))
+			.forEach(function (box) { box.checked = on; });
+		syncAllPressed();
+		research();
 	});
 	/* Plain click on a tile opens the preview pane on that hit; Ctrl/⌘-click keeps
 	 * the tile's own meaning (jump to the file in Files, new tab). */

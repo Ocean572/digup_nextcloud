@@ -36,13 +36,16 @@ class ApiController extends Controller {
 	}
 
 	/**
-	 * POST /api/v1/search {q, limit} — answers for the asking user only.
+	 * POST /api/v1/search {q, limit, kinds} — answers for the asking user only.
+	 * kinds: the page's media-type filter, forwarded to the engine verbatim (the
+	 * server's SearchRequest validates the kind names; empty list = the engine's
+	 * own answer, all six = every kind — the standalone app's semantics).
 	 *
 	 * @NoAdminRequired
 	 */
-	public function search(string $q = '', int $limit = 20): JSONResponse {
+	public function search(string $q = '', int $limit = 20, array $kinds = []): JSONResponse {
 		$limit = max(1, min(100, $limit));      // the engine's own cap
-		return new JSONResponse($this->service->search(trim($q), $limit, $this->userId));
+		return new JSONResponse($this->service->search(trim($q), $limit, $this->userId, $kinds));
 	}
 
 	/**

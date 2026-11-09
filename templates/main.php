@@ -26,6 +26,27 @@
       <span id="digup-progress" class="digup-progress" aria-live="polite"></span>
     </span>
   </header>
+  <!-- Kind filter (user brief 2026-11-08): the same chips as the standalone app, under
+       the search box. Semantics verbatim from the standalone: all ticked = the engine's
+       "all kinds", a partial set = filter, none ticked = the engine's own answer (0 hits).
+       The all button is a toggle (all on ↔ all off), aria-pressed carries the state. -->
+  <div id="digup-kinds" class="digup-kinds" role="group"
+       aria-label="<?php p($l->t('Filter by media type')); ?>">
+    <?php foreach ([
+      'screenshot' => $l->t('Screenshots'),
+      'image' => $l->t('Images'),
+      'pdf' => $l->t('PDFs'),
+      'doc' => $l->t('Documents'),
+      'video' => $l->t('Video'),
+      'audio' => $l->t('Audio'),
+    ] as $digupKind => $digupLabel): ?>
+      <label class="digup-kindchip" data-kind="<?= p($digupKind) ?>">
+        <input type="checkbox" value="<?= p($digupKind) ?>" checked> <?= p($digupLabel) ?>
+      </label>
+    <?php endforeach; ?>
+    <button type="button" id="digup-kinds-all" class="digup-kinds-all" aria-pressed="true"
+            title="<?php p($l->t('All media types on — click to clear them all')); ?>">all</button>
+  </div>
   <main class="digup-main">
     <p id="digup-status" role="status"><?php p($l->t('Say what you’d see, hear, or read — the meaning, not only the words.')); ?></p>
     <div class="digup-panes">
